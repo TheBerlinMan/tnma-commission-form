@@ -1,4 +1,26 @@
 (() => {
+  // Flip to true (and redeploy) once all commission spots are filled.
+  // The survey stays wired up underneath — this just swaps the visible view.
+  const SPOTS_FILLED = false;
+
+  const surveyView = document.getElementById('surveyView');
+  const closedView = document.getElementById('closedView');
+  if (SPOTS_FILLED) {
+    surveyView.hidden = true;
+    closedView.hidden = false;
+  }
+
+  const waitlistForm = document.getElementById('waitlistForm');
+  const waitlistConfirm = document.getElementById('waitlistConfirm');
+  if (waitlistForm) {
+    waitlistForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      // no backend wired up — just acknowledge the signup client-side.
+      waitlistForm.hidden = true;
+      waitlistConfirm.hidden = false;
+    });
+  }
+
   const slidesEl = document.getElementById('slides');
   const track = document.getElementById('slideTrack');
   const slides = Array.from(track.querySelectorAll('.slide'));
@@ -142,6 +164,20 @@
     return data;
   }
 
+  function updateDepositSummary() {
+    const depositEl = document.getElementById('depositAmount');
+    if (!depositEl) return;
+    const data = collectData();
+    const tattooCount = data.tattoo === 'yes' && Array.isArray(data.tattooPicks) ? data.tattooPicks.length : 0;
+    if (tattooCount > 0) {
+      const total = 50 + tattooCount * 25;
+      const tattooWord = tattooCount === 1 ? 'tattoo' : 'tattoos';
+      depositEl.innerHTML = `Your deposit is <strong>$${total}</strong> — a $50 base, plus $25 for each tattoo embroidery selection (${tattooCount} ${tattooWord} selected).`;
+    } else {
+      depositEl.innerHTML = 'Your deposit is <strong>$50</strong>.';
+    }
+  }
+
   function renderSummary() {
     const data = collectData();
     summaryEl.innerHTML = '';
@@ -170,13 +206,12 @@
 
   function updateNavLabels() {
     btnBack.classList.toggle('is-hidden', current === 0 || current === lastIndex);
+    btnNext.classList.toggle('is-hidden', current === lastIndex);
 
     if (current === 0) {
       btnNext.textContent = 'Start Survey';
     } else if (current === reviewIndex) {
       btnNext.textContent = 'Submit request';
-    } else if (current === lastIndex) {
-      btnNext.textContent = 'Start a new request';
     } else if (current === lastIndex - 1) {
       btnNext.textContent = 'Review';
     } else {
@@ -216,6 +251,7 @@
     }
     if (current === reviewIndex) {
       // "submission" — no backend wired up, just advance to thank-you slide.
+      updateDepositSummary();
       goTo(current + 1);
       return;
     }
@@ -293,6 +329,23 @@
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !lightbox.hidden) closeLightbox();
   });
+
+  // Copy phone number for Zelle
+  const btnCopyZelle = document.getElementById('btnCopyZelle');
+  if (btnCopyZelle) {
+    btnCopyZelle.addEventListener('click', async () => {
+      const originalText = btnCopyZelle.textContent;
+      try {
+        await navigator.clipboard.writeText('(201) 300-7370');
+        btnCopyZelle.textContent = 'Copied!';
+      } catch {
+        btnCopyZelle.textContent = 'Copy failed — (201) 300-7370';
+      }
+      setTimeout(() => {
+        btnCopyZelle.textContent = originalText;
+      }, 2000);
+    });
+  }
 
   goTo(0);
 })();

@@ -15,7 +15,7 @@
     <span class="kicker">Commission Survey</span>
   </header>
 
-  <div class="content-group">
+  <div class="content-group" id="surveyView">
   <main class="slides" id="slides">
     <div class="slide-track" id="slideTrack">
 
@@ -24,7 +24,7 @@
         <div class="slide-content">
           <h2>Details</h2>
           <p class="lede"><strong>Each spot guarantees a bag</strong>, made by me, that is handmade and one of a kind.</p>
-          <p class="lede">To claim a spot: complete a 5-minute preference survey, then send a <strong>$50 deposit</strong> via Venmo or Zelle. Spots are confirmed once I've received both, and are filled on a first come, first served basis.</p>
+          <p class="lede">To claim a spot: complete a quick survey regarding your preferences, then send a <strong>$50 deposit</strong> via Venmo or Zelle. Spots are confirmed once I've received both, and are filled on a first come, first served basis.</p>
           <p class="lede">There are <strong>only six spots available</strong>.</p>
           <p class="lede">All bags will be <strong>delivered by December 1st</strong>.</p>
         </div>
@@ -289,8 +289,13 @@
         <div class="slide-content slide-content--center">
           <span class="eyebrow">Survey Submitted</span>
           <h1>Thank you!</h1>
-          <p class="lede">I've received your commission survey. Once you've submitted your deposit, I'll message you with confirmation of your spot.<br>You can find me on venmo or zelle through my phone number: (201) 300-7370.</p>
-          <a class="btn btn--primary" href="https://venmo.com/u/Thomas-Onik" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; justify-content:center; text-decoration:none; margin-top: 8px;">Pay on Venmo</a>
+          <p class="lede">I've received your commission survey. Once you've submitted your deposit, I'll message you with confirmation of your spot.</p>
+          <p class="lede" id="depositAmount">Your deposit is <strong>$50</strong>.</p>
+          <p class="lede">You can find me on venmo or zelle through my phone number: (201) 300-7370.</p>
+          <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top: 8px;">
+            <a class="btn btn--primary" href="https://venmo.com/u/Thomas-Onik" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; justify-content:center; text-decoration:none;">Pay on Venmo</a>
+            <button type="button" class="btn btn--ghost" id="btnCopyZelle">Copy Phone Number</button>
+          </div>
         </div>
       </section>
 
@@ -311,6 +316,21 @@
     <div class="progress" id="progress" aria-hidden="true"></div>
     <p class="privacy-note">It's important to me that your data remains yours, indefinitely, and stays protected.</p>
   </div>
+  </div>
+
+  <div class="content-group" id="closedView" hidden>
+    <div class="slide-content slide-content--center">
+      <h1>All spots filled</h1>
+      <p class="lede">Thank you for your interest, but there are no more spots available. If you'd like, please sign up for the waitlist below if a spot becomes available or to hear about future commission rounds.</p>
+      <form class="waitlist-form" id="waitlistForm">
+        <div class="field">
+          <label for="waitlistEmail" class="sr-only">Email</label>
+          <input type="email" id="waitlistEmail" name="waitlistEmail" autocomplete="email" required placeholder="you@example.com">
+        </div>
+        <button type="submit" class="btn btn--primary" id="btnWaitlistSubmit">Join waitlist</button>
+      </form>
+      <p class="lede" id="waitlistConfirm" hidden>You're on the list — thank you!</p>
+    </div>
   </div>
 
 </div>
