@@ -13,23 +13,24 @@
     email: 'Email',
     phone: 'Phone',
     usage: 'Primary use',
+    bagSize: 'Preferred size',
     heaviestItem: 'Heaviest item',
     specificFit: 'Needs to fit',
-    bagSize: 'Preferred size',
-    tattoo: 'Tattoo embroidery',
-    tattooPicks: 'Tattoo selections',
-    instaMatch: 'Match an Insta bag',
-    instaBag: 'Matched bag',
     favoriteColors: 'Favorite colors',
     dislikedColors: 'Colors to avoid',
     allergies: 'Fabric allergies',
+    additionalPreferences: 'Additional preferences',
+    instaMatch: 'Match an Insta bag',
+    instaBag: 'Matched bag',
+    tattoo: 'Tattoo embroidery',
+    tattooPicks: 'Tattoo selections',
   };
 
   const VALUE_LABELS = {
     usage: {
       groceries: 'Groceries',
-      clothes: 'Carry clothes',
-      laptop: 'Laptop bag',
+      clothes: 'Clothes',
+      laptop: 'Laptop / Books / Other Tech',
       'everyday-items': "The day's little things",
     },
     bagSize: {
@@ -46,12 +47,14 @@
       yes: 'Yes',
     },
     tattooPicks: {
-      'small-1': 'Small 1',
-      'small-2': 'Small 2',
-      'small-3': 'Small 3',
-      'small-4': 'Small 4',
-      'medium-1': 'Medium 1',
-      'medium-2': 'Medium 2',
+      'peace-sign': 'Peace sign',
+      thirteen: 'XIII',
+      arrows: 'Crossed arrows',
+      angel: 'Angel',
+      'ukraine-crest': 'Ukraine crest',
+      bow: 'Bow',
+      devil: 'Devil',
+      'paper-plane': 'Paper plane',
     },
     instaBag: {
       'bag-1': 'Bag 1',
@@ -258,19 +261,12 @@
 
   window.addEventListener('resize', syncSlidesHeight);
 
-  // Tattoo picks: up to 3 total, max 2 small + 1 medium
+  // Tattoo picks: up to 3 total
   const tattooChecks = Array.from(document.querySelectorAll('input[name="tattooPicks"]'));
   function updateTattooCaps() {
-    const checked = tattooChecks.filter((c) => c.checked);
-    const smallCount = checked.filter((c) => c.dataset.size === 'small').length;
-    const mediumCount = checked.filter((c) => c.dataset.size === 'medium').length;
+    const checkedCount = tattooChecks.filter((c) => c.checked).length;
     tattooChecks.forEach((c) => {
-      if (c.checked) {
-        c.disabled = false;
-        return;
-      }
-      c.disabled = (c.dataset.size === 'small' && smallCount >= 2)
-        || (c.dataset.size === 'medium' && mediumCount >= 1);
+      if (!c.checked) c.disabled = checkedCount >= 3;
     });
   }
   tattooChecks.forEach((c) => c.addEventListener('change', updateTattooCaps));
@@ -279,15 +275,11 @@
   const lightbox = document.getElementById('lightbox');
   const lightboxImage = document.getElementById('lightboxImage');
   function openLightbox(label, src) {
-    if (src) {
-      lightboxImage.innerHTML = '';
-      const img = document.createElement('img');
-      img.src = src;
-      img.alt = label;
-      lightboxImage.appendChild(img);
-    } else {
-      lightboxImage.textContent = label;
-    }
+    lightboxImage.innerHTML = '';
+    const img = document.createElement('img');
+    img.src = src;
+    img.alt = label;
+    lightboxImage.appendChild(img);
     lightbox.hidden = false;
   }
   function closeLightbox() {

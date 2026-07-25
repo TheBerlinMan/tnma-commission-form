@@ -64,7 +64,7 @@
         </div>
       </section>
 
-      <!-- Slide 3: Usage, heaviest item, specific fit, bag size, functional/simple -->
+      <!-- Slide 3: Usage, bag size, heaviest item, specific fit, colors, fabric allergies -->
       <section class="slide slide--form" data-slide="3">
         <div class="slide-content">
           <h3>What will you primarily use the bag for?</h3>
@@ -76,26 +76,16 @@
             </label>
             <label class="option">
               <input type="checkbox" name="usage" value="clothes">
-              <span>Carry clothes</span>
+              <span>Clothes</span>
             </label>
             <label class="option">
               <input type="checkbox" name="usage" value="laptop">
-              <span>Laptop bag</span>
+              <span>Laptop / Books / Other Tech</span>
             </label>
             <label class="option">
               <input type="checkbox" name="usage" value="everyday-items">
               <span>The day's little things</span>
             </label>
-          </div>
-
-          <h3 id="heaviestItemQuestion">What is the heaviest thing you'd expect to carry in the bag?</h3>
-          <div class="field">
-            <input type="text" id="heaviestItem" name="heaviestItem" required placeholder="e.g. a laptop, a full water bottle, textbooks" aria-labelledby="heaviestItemQuestion">
-          </div>
-
-          <h3 id="specificFitQuestion">Will it need to fit anything specific?</h3>
-          <div class="field">
-            <input type="text" id="specificFit" name="specificFit" placeholder='e.g. a 15&quot; laptop, a yoga mat, a Stanley thermos' aria-labelledby="specificFitQuestion">
           </div>
 
           <h3>What's your preferred bag size?</h3>
@@ -114,52 +104,40 @@
               <span>Larger</span>
             </label>
           </div>
+
+          <h3 id="heaviestItemQuestion">What is the heaviest thing you'd expect to carry in the bag?</h3>
+          <div class="field">
+            <input type="text" id="heaviestItem" name="heaviestItem" required placeholder="e.g. a laptop, a full water bottle, textbooks" aria-labelledby="heaviestItemQuestion">
+          </div>
+
+          <h3 id="specificFitQuestion">Will it need to fit anything specific?</h3>
+          <div class="field">
+            <input type="text" id="specificFit" name="specificFit" placeholder='e.g. a 15&quot; laptop, a yoga mat, a Stanley thermos' aria-labelledby="specificFitQuestion">
+          </div>
+
+          <h3 id="favoriteColorsQuestion">What are your favorite three colors?</h3>
+          <div class="field">
+            <input type="text" id="favoriteColors" name="favoriteColors" required placeholder="e.g. olive green, cream, rust" aria-labelledby="favoriteColorsQuestion">
+          </div>
+
+          <h3 id="dislikedColorsQuestion">Are there any colors that you don't like?</h3>
+          <div class="field">
+            <input type="text" id="dislikedColors" name="dislikedColors" placeholder="e.g. neon colors, bright pink" aria-labelledby="dislikedColorsQuestion">
+          </div>
+
+          <h3 id="allergiesQuestion">Do you have allergies to any fabrics?</h3>
+          <div class="field">
+            <input type="text" id="allergies" name="allergies" placeholder="e.g. wool, latex" aria-labelledby="allergiesQuestion">
+          </div>
         </div>
       </section>
 
-      <!-- Slide 4: Tattoo embroidery -->
+      <!-- Slide 4: Additional preferences -->
       <section class="slide slide--form" data-slide="4">
         <div class="slide-content">
-          <h2>Would you like to add a tattoo embroidery to your bag?</h2>
-          <p class="hint">The 'tattoos' are embroidered icons sewn into your bag. They serve as a quiet memorial to my brother Serge. Each icon is a tattoo he had himself. The tattoos are $50 each, and every dollar is pledged to the Serge Onik Memorial Fund.</p>
-          <button type="button" class="swatch-expand" data-expand="Tattoo Sheet">View tattoo sheet</button>
-          <div class="option-group" role="radiogroup" aria-label="Tattoo embroidery">
-            <label class="option">
-              <input type="radio" name="tattoo" value="no" required>
-              <span>No</span>
-            </label>
-            <label class="option">
-              <input type="radio" name="tattoo" value="yes">
-              <span>Yes</span>
-            </label>
-          </div>
-          <div class="conditional" id="tattooSheet" hidden>
-            <div class="swatch-grid">
-              <label class="swatch">
-                <input type="checkbox" name="tattooPicks" value="small-1" data-size="small">
-                <span class="swatch-thumb" aria-hidden="true">Small 1</span>
-              </label>
-              <label class="swatch">
-                <input type="checkbox" name="tattooPicks" value="small-2" data-size="small">
-                <span class="swatch-thumb" aria-hidden="true">Small 2</span>
-              </label>
-              <label class="swatch">
-                <input type="checkbox" name="tattooPicks" value="small-3" data-size="small">
-                <span class="swatch-thumb" aria-hidden="true">Small 3</span>
-              </label>
-              <label class="swatch">
-                <input type="checkbox" name="tattooPicks" value="small-4" data-size="small">
-                <span class="swatch-thumb" aria-hidden="true">Small 4</span>
-              </label>
-              <label class="swatch">
-                <input type="checkbox" name="tattooPicks" value="medium-1" data-size="medium">
-                <span class="swatch-thumb" aria-hidden="true">Medium 1</span>
-              </label>
-              <label class="swatch">
-                <input type="checkbox" name="tattooPicks" value="medium-2" data-size="medium">
-                <span class="swatch-thumb" aria-hidden="true">Medium 2</span>
-              </label>
-            </div>
+          <h3 id="additionalPreferencesQuestion">Is there anything else you'd like me to know about your preferences?</h3>
+          <div class="field">
+            <textarea id="additionalPreferences" name="additionalPreferences" rows="5" placeholder="If you have a specific vision, please describe your ideal bag: dimensions, colors, pockets, strap type, fabric, etc." aria-labelledby="additionalPreferencesQuestion"></textarea>
           </div>
         </div>
       </section>
@@ -168,6 +146,7 @@
       <section class="slide slide--form" data-slide="5">
         <div class="slide-content">
           <h2>Is there a bag of mine you've seen on Insta whose style I should match?</h2>
+          <p class="hint">I will not necessarily recreate the bag one-to-one, but will instead use it as inspiration during the design process.</p>
           <div class="option-group" role="radiogroup" aria-label="Match an existing bag">
             <label class="option">
               <input type="radio" name="instaMatch" value="no" required>
@@ -185,95 +164,113 @@
                 <label>
                   <input type="radio" name="instaBag" value="bag-1">
                   <img class="swatch-thumb" src="assets/insta-bags/bag-1.jpg" alt="Bag 1">
-                  <span class="swatch-label">Bag 1</span>
                 </label>
-                <button type="button" class="swatch-expand" data-expand="Bag 1" data-src="assets/insta-bags/bag-1.jpg">Click to expand</button>
               </div>
               <div class="swatch">
                 <label>
                   <input type="radio" name="instaBag" value="bag-2">
                   <img class="swatch-thumb" src="assets/insta-bags/bag-2.jpg" alt="Bag 2">
-                  <span class="swatch-label">Bag 2</span>
                 </label>
-                <button type="button" class="swatch-expand" data-expand="Bag 2" data-src="assets/insta-bags/bag-2.jpg">Click to expand</button>
               </div>
               <div class="swatch">
                 <label>
                   <input type="radio" name="instaBag" value="bag-3">
                   <img class="swatch-thumb" src="assets/insta-bags/bag-3.jpg" alt="Bag 3">
-                  <span class="swatch-label">Bag 3</span>
                 </label>
-                <button type="button" class="swatch-expand" data-expand="Bag 3" data-src="assets/insta-bags/bag-3.jpg">Click to expand</button>
               </div>
               <div class="swatch">
                 <label>
                   <input type="radio" name="instaBag" value="bag-4">
                   <img class="swatch-thumb" src="assets/insta-bags/bag-4.jpg" alt="Bag 4">
-                  <span class="swatch-label">Bag 4</span>
                 </label>
-                <button type="button" class="swatch-expand" data-expand="Bag 4" data-src="assets/insta-bags/bag-4.jpg">Click to expand</button>
               </div>
               <div class="swatch">
                 <label>
                   <input type="radio" name="instaBag" value="bag-5">
                   <img class="swatch-thumb" src="assets/insta-bags/bag-5.jpg" alt="Bag 5">
-                  <span class="swatch-label">Bag 5</span>
                 </label>
-                <button type="button" class="swatch-expand" data-expand="Bag 5" data-src="assets/insta-bags/bag-5.jpg">Click to expand</button>
               </div>
               <div class="swatch">
                 <label>
                   <input type="radio" name="instaBag" value="bag-6">
                   <img class="swatch-thumb" src="assets/insta-bags/bag-6.jpg" alt="Bag 6">
-                  <span class="swatch-label">Bag 6</span>
                 </label>
-                <button type="button" class="swatch-expand" data-expand="Bag 6" data-src="assets/insta-bags/bag-6.jpg">Click to expand</button>
               </div>
               <div class="swatch">
                 <label>
                   <input type="radio" name="instaBag" value="bag-7">
                   <img class="swatch-thumb" src="assets/insta-bags/bag-7.jpg" alt="Bag 7">
-                  <span class="swatch-label">Bag 7</span>
                 </label>
-                <button type="button" class="swatch-expand" data-expand="Bag 7" data-src="assets/insta-bags/bag-7.jpg">Click to expand</button>
               </div>
               <div class="swatch">
                 <label>
                   <input type="radio" name="instaBag" value="bag-8">
                   <img class="swatch-thumb" src="assets/insta-bags/bag-8.jpg" alt="Bag 8">
-                  <span class="swatch-label">Bag 8</span>
                 </label>
-                <button type="button" class="swatch-expand" data-expand="Bag 8" data-src="assets/insta-bags/bag-8.jpg">Click to expand</button>
               </div>
               <div class="swatch">
                 <label>
                   <input type="radio" name="instaBag" value="bag-9">
                   <img class="swatch-thumb" src="assets/insta-bags/bag-9.jpg" alt="Bag 9">
-                  <span class="swatch-label">Bag 9</span>
                 </label>
-                <button type="button" class="swatch-expand" data-expand="Bag 9" data-src="assets/insta-bags/bag-9.jpg">Click to expand</button>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Slide 6: Favorite colors, disliked colors, fabric allergies -->
+      <!-- Slide 6: Tattoo embroidery -->
       <section class="slide slide--form" data-slide="6">
         <div class="slide-content">
-          <h3 id="favoriteColorsQuestion">What are your favorite three colors?</h3>
-          <div class="field">
-            <input type="text" id="favoriteColors" name="favoriteColors" required placeholder="e.g. olive green, cream, rust" aria-labelledby="favoriteColorsQuestion">
+          <h2>Would you like to add a tattoo embroidery to your bag?</h2>
+          <p class="hint">The 'tattoos' are embroidered icons sewn into your bag. They serve as a quiet memorial to my brother Serge. Each icon is a tattoo he had himself. The tattoos are $50 each, and every dollar is pledged to the Serge Onik Memorial Fund.</p>
+          <button type="button" class="swatch-expand" data-expand="Tattoo Sheet" data-src="assets/tattoo-sheet.jpg">View tattoo sheet</button>
+          <div class="option-group" role="radiogroup" aria-label="Tattoo embroidery">
+            <label class="option">
+              <input type="radio" name="tattoo" value="no" required>
+              <span>No</span>
+            </label>
+            <label class="option">
+              <input type="radio" name="tattoo" value="yes">
+              <span>Yes</span>
+            </label>
           </div>
-
-          <h3 id="dislikedColorsQuestion">Are there any colors that you don't like?</h3>
-          <div class="field">
-            <input type="text" id="dislikedColors" name="dislikedColors" placeholder="e.g. neon colors, bright pink" aria-labelledby="dislikedColorsQuestion">
-          </div>
-
-          <h3 id="allergiesQuestion">Do you have any allergies to any specific fabrics?</h3>
-          <div class="field">
-            <input type="text" id="allergies" name="allergies" placeholder="e.g. wool, latex" aria-labelledby="allergiesQuestion">
+          <div class="conditional" id="tattooSheet" hidden>
+            <p class="hint">Select up to 3.</p>
+            <div class="swatch-grid">
+              <label class="swatch">
+                <input type="checkbox" name="tattooPicks" value="peace-sign">
+                <img class="swatch-thumb" src="assets/tattoos/peace-sign.jpg" alt="Peace sign">
+              </label>
+              <label class="swatch">
+                <input type="checkbox" name="tattooPicks" value="thirteen">
+                <img class="swatch-thumb" src="assets/tattoos/thirteen.jpg" alt="Roman numeral thirteen">
+              </label>
+              <label class="swatch">
+                <input type="checkbox" name="tattooPicks" value="arrows">
+                <img class="swatch-thumb" src="assets/tattoos/arrows.jpg" alt="Crossed arrows, est '88">
+              </label>
+              <label class="swatch">
+                <input type="checkbox" name="tattooPicks" value="angel">
+                <img class="swatch-thumb" src="assets/tattoos/angel.jpg" alt="Angel smiley">
+              </label>
+              <label class="swatch">
+                <input type="checkbox" name="tattooPicks" value="ukraine-crest">
+                <img class="swatch-thumb" src="assets/tattoos/ukraine-crest.jpg" alt="Ukraine crest">
+              </label>
+              <label class="swatch">
+                <input type="checkbox" name="tattooPicks" value="bow">
+                <img class="swatch-thumb" src="assets/tattoos/bow.jpg" alt="Bow tie">
+              </label>
+              <label class="swatch">
+                <input type="checkbox" name="tattooPicks" value="devil">
+                <img class="swatch-thumb" src="assets/tattoos/devil.jpg" alt="Devil smiley">
+              </label>
+              <label class="swatch">
+                <input type="checkbox" name="tattooPicks" value="paper-plane">
+                <img class="swatch-thumb" src="assets/tattoos/paper-plane.jpg" alt="Paper plane">
+              </label>
+            </div>
           </div>
         </div>
       </section>
@@ -283,7 +280,7 @@
         <div class="slide-content">
           <h2>Review &amp; submit</h2>
           <dl class="summary" id="summary"></dl>
-          <p class="fine-print">By submitting, you agree we may email you a quote and follow-up questions about this commission.</p>
+          <p class="fine-print">I may reach out to you during the design process with questions.</p>
         </div>
       </section>
 
@@ -301,10 +298,8 @@
 
   <div class="lightbox" id="lightbox" hidden>
     <div class="lightbox-backdrop" id="lightboxBackdrop"></div>
-    <div class="lightbox-content">
-      <button type="button" class="lightbox-close" id="lightboxClose" aria-label="Close">×</button>
-      <div class="lightbox-image" id="lightboxImage"></div>
-    </div>
+    <button type="button" class="lightbox-close" id="lightboxClose" aria-label="Close">×</button>
+    <div class="lightbox-image" id="lightboxImage"></div>
   </div>
 
   <div class="app-mid">
