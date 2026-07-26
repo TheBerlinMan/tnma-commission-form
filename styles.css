@@ -360,6 +360,33 @@ textarea:focus {
   border: 0;
 }
 
+/* Radio/checkbox groups sit in .option labels, not .field wrappers, so they
+   need their own invalid state. */
+.option.field--invalid {
+  border-color: var(--color-danger);
+}
+
+/* Honeypot: must stay in the layout (bots skip display:none) but off-screen
+   and unreachable by keyboard or screen reader. */
+.honeypot {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.form-error {
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: var(--color-danger);
+  margin: 12px 0 0;
+}
+
+.form-error[hidden] {
+  display: none;
+}
+
 .waitlist-form {
   display: flex;
   align-items: flex-start;

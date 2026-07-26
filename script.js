@@ -3,6 +3,16 @@
   // The survey stays wired up underneath — this just swaps the visible view.
   const SPOTS_FILLED = false;
 
+  // ── form-relay (github.com/TheBerlinMan/tnma-form-relay) ──────────────────
+  // Both ids must exist in the relay's src/config/forms.ts, and this site's
+  // origin must be in each one's allowedOrigins or the POST 403s. See README.
+  const RELAY_BASE = 'https://form-relay-eta.vercel.app/f';
+  const COMMISSION_FORM_ID = 'tnma-bag-commission';
+  const WAITLIST_FORM_ID = 'tnma-bag-waitlist';
+
+  // Per tattoo embroidery, on top of the $50 base deposit.
+  const TATTOO_PRICE = 25;
+
   const surveyView = document.getElementById('surveyView');
   const closedView = document.getElementById('closedView');
   if (SPOTS_FILLED) {
@@ -10,14 +20,75 @@
     closedView.hidden = false;
   }
 
+  /**
+   * POSTs to form-relay as JSON. The relay only reads string values — an array
+   * or number is coerced to '' and silently dropped — so every value must
+   * already be a string by the time it gets here.
+   *
+   * Resolves { ok: true } on success, { ok: false, errors?, message } otherwise.
+   * Note the relay returns a fake 200 for spam/rate-limit/duplicate rejections
+   * on purpose, so "ok" means "accepted", not "definitely emailed".
+   */
+  async function submitToRelay(formId, payload) {
+    let res;
+    try {
+      res = await fetch(`${RELAY_BASE}/${formId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+    } catch {
+      return { ok: false, message: "Couldn't reach the server. Check your connection and try again." };
+    }
+
+    if (res.ok) return { ok: true };
+
+    if (res.status === 422) {
+      let errors = {};
+      try {
+        ({ errors = {} } = await res.json());
+      } catch { /* fall through to the generic message */ }
+      return { ok: false, errors, message: 'Please check the highlighted answers and try again.' };
+    }
+
+    // 403 (origin not allowlisted) and 404 (unknown form id) are config bugs on
+    // the relay side — the visitor can't fix them, so log loudly and stay vague.
+    console.error(`form-relay ${formId} responded ${res.status}`);
+    return { ok: false, message: "Something went wrong on my end. Please try again in a moment, or email me directly." };
+  }
+
+  // ── Waitlist (shown only once SPOTS_FILLED flips) ─────────────────────────
   const waitlistForm = document.getElementById('waitlistForm');
   const waitlistConfirm = document.getElementById('waitlistConfirm');
+  const waitlistError = document.getElementById('waitlistError');
   if (waitlistForm) {
-    waitlistForm.addEventListener('submit', (e) => {
+    const btnWaitlist = document.getElementById('btnWaitlistSubmit');
+    waitlistForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      // no backend wired up — just acknowledge the signup client-side.
-      waitlistForm.hidden = true;
-      waitlistConfirm.hidden = false;
+      if (btnWaitlist.disabled) return;
+
+      waitlistError.hidden = true;
+      btnWaitlist.disabled = true;
+      const originalText = btnWaitlist.textContent;
+      btnWaitlist.textContent = 'Joining…';
+
+      const result = await submitToRelay(WAITLIST_FORM_ID, {
+        email: document.getElementById('waitlistEmail').value.trim(),
+        _honey: document.getElementById('waitlistHoney').value,
+      });
+
+      if (result.ok) {
+        waitlistForm.hidden = true;
+        waitlistConfirm.hidden = false;
+        return;
+      }
+
+      waitlistError.textContent = result.errors?.email
+        ? `Email: ${result.errors.email}`
+        : result.message;
+      waitlistError.hidden = false;
+      btnWaitlist.disabled = false;
+      btnWaitlist.textContent = originalText;
     });
   }
 
@@ -46,6 +117,15 @@
     instaBag: 'Matched bag',
     tattoo: 'Tattoo embroidery',
     tattooPicks: 'Tattoo selections',
+  };
+
+  // form-relay reports 422 errors under the payload's field names, which differ
+  // from the DOM names in a couple of places (fullName → name).
+  const RELAY_FIELD_LABELS = {
+    ...FIELD_LABELS,
+    name: 'Name',
+    tattooCount: 'Tattoo count',
+    depositTotal: 'Deposit total',
   };
 
   const VALUE_LABELS = {
@@ -164,18 +244,59 @@
     return data;
   }
 
+  function tattooCountFrom(data) {
+    return data.tattoo === 'yes' && Array.isArray(data.tattooPicks) ? data.tattooPicks.length : 0;
+  }
+
+  function depositTotalFrom(data) {
+    return 50 + tattooCountFrom(data) * TATTOO_PRICE;
+  }
+
   function updateDepositSummary() {
     const depositEl = document.getElementById('depositAmount');
     if (!depositEl) return;
     const data = collectData();
-    const tattooCount = data.tattoo === 'yes' && Array.isArray(data.tattooPicks) ? data.tattooPicks.length : 0;
+    const tattooCount = tattooCountFrom(data);
     if (tattooCount > 0) {
-      const total = 50 + tattooCount * 25;
       const tattooWord = tattooCount === 1 ? 'tattoo' : 'tattoos';
-      depositEl.innerHTML = `Your deposit is <strong>$${total}</strong> — a $50 base, plus $25 for each tattoo embroidery selection (${tattooCount} ${tattooWord} selected).`;
+      depositEl.innerHTML = `Your deposit is <strong>$${depositTotalFrom(data)}</strong> — a $50 base, plus $${TATTOO_PRICE} for each tattoo embroidery selection (${tattooCount} ${tattooWord} selected).`;
     } else {
       depositEl.innerHTML = 'Your deposit is <strong>$50</strong>.';
     }
+  }
+
+  /**
+   * Flattens the survey into the flat string map form-relay expects. Multi-selects
+   * are joined into one string and slugs are swapped for their human labels, so
+   * the notification email reads the same as the on-screen review.
+   */
+  function buildSurveyPayload() {
+    const data = collectData();
+    const str = (key) => data[key] || '';
+    const labelled = (key) => (data[key] ? formatValue(key, data[key]) : '');
+
+    return {
+      name: str('fullName'),
+      email: str('email'),
+      phone: str('phone'),
+      usage: labelled('usage'),
+      bagSize: labelled('bagSize'),
+      heaviestItem: str('heaviestItem'),
+      specificFit: str('specificFit'),
+      favoriteColors: str('favoriteColors'),
+      dislikedColors: str('dislikedColors'),
+      allergies: str('allergies'),
+      additionalPreferences: str('additionalPreferences'),
+      instaMatch: labelled('instaMatch'),
+      // Conditional answers are dropped unless their gate is a "yes", so a
+      // radio left checked from an earlier pass can't leak into the email.
+      instaBag: data.instaMatch === 'yes' ? labelled('instaBag') : '',
+      tattoo: labelled('tattoo'),
+      tattooPicks: data.tattoo === 'yes' ? labelled('tattooPicks') : '',
+      tattooCount: String(tattooCountFrom(data)),
+      depositTotal: String(depositTotalFrom(data)),
+      _honey: str('_honey'),
+    };
   }
 
   function renderSummary() {
@@ -232,6 +353,37 @@
     syncSlidesHeight();
   }
 
+  const submitError = document.getElementById('submitError');
+  let isSubmitting = false;
+
+  async function submitSurvey() {
+    if (isSubmitting) return;
+    isSubmitting = true;
+    submitError.hidden = true;
+    btnNext.disabled = true;
+    btnNext.textContent = 'Sending…';
+
+    const result = await submitToRelay(COMMISSION_FORM_ID, buildSurveyPayload());
+
+    isSubmitting = false;
+    btnNext.disabled = false;
+
+    if (result.ok) {
+      updateDepositSummary();
+      goTo(current + 1);
+      return;
+    }
+
+    // Stay on the review slide with the answers intact so they can retry.
+    const fieldErrors = Object.entries(result.errors || {});
+    submitError.textContent = fieldErrors.length
+      ? `${result.message} (${fieldErrors.map(([k, v]) => `${RELAY_FIELD_LABELS[k] || k}: ${v}`).join('; ')})`
+      : result.message;
+    submitError.hidden = false;
+    updateNavLabels();
+    syncSlidesHeight();
+  }
+
   btnNext.addEventListener('click', () => {
     if (current === lastIndex) {
       // restart
@@ -246,17 +398,30 @@
       document.querySelectorAll('select').forEach((el) => (el.selectedIndex = 0));
       tattooSheet.hidden = true;
       instaGallery.hidden = true;
+      submitError.hidden = true;
       goTo(0);
       return;
     }
     if (current === reviewIndex) {
-      // "submission" — no backend wired up, just advance to thank-you slide.
-      updateDepositSummary();
-      goTo(current + 1);
+      submitSurvey();
+      return;
+    }
+    advance();
+  });
+
+  /**
+   * Forward navigation, gated on the current slide's required fields. Before the
+   * relay was wired up a missed field cost nothing; now it comes back as a 422
+   * on the very last screen, so catch it on the slide that owns the field.
+   */
+  function advance() {
+    if (current === lastIndex) return;
+    if (!validateSlide(slides[current])) {
+      syncSlidesHeight();
       return;
     }
     goTo(current + 1);
-  });
+  }
 
   btnBack.addEventListener('click', () => goTo(current - 1));
 
@@ -273,7 +438,13 @@
     if (dx > threshold) {
       goTo(current - 1);
     } else if (dx < -threshold) {
-      goTo(current + 1);
+      // Swiping off the review slide must not skip the submit — that would land
+      // the visitor on "Thank you" without anything ever reaching the relay.
+      if (current === reviewIndex) {
+        submitSurvey();
+      } else {
+        advance();
+      }
     }
     touchStartX = null;
   });

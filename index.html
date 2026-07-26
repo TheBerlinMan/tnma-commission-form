@@ -61,6 +61,11 @@
             <label for="phone">Phone <span class="optional">(optional)</span></label>
             <input type="tel" id="phone" name="phone" autocomplete="tel" placeholder="+1 555 000 0000">
           </div>
+          <!-- Honeypot: off-screen, never focusable. Bots fill it, humans can't. -->
+          <div class="honeypot" aria-hidden="true">
+            <label for="surveyHoney">Leave this field empty</label>
+            <input type="text" id="surveyHoney" name="_honey" tabindex="-1" autocomplete="off">
+          </div>
         </div>
       </section>
 
@@ -280,6 +285,7 @@
         <div class="slide-content">
           <h2>Review &amp; submit</h2>
           <dl class="summary" id="summary"></dl>
+          <p class="form-error" id="submitError" role="alert" hidden></p>
           <p class="fine-print">I may reach out to you during the design process with questions.</p>
         </div>
       </section>
@@ -325,10 +331,15 @@
       <form class="waitlist-form" id="waitlistForm">
         <div class="field">
           <label for="waitlistEmail" class="sr-only">Email</label>
-          <input type="email" id="waitlistEmail" name="waitlistEmail" autocomplete="email" required placeholder="you@example.com">
+          <input type="email" id="waitlistEmail" name="email" autocomplete="email" required placeholder="you@example.com">
+        </div>
+        <div class="honeypot" aria-hidden="true">
+          <label for="waitlistHoney">Leave this field empty</label>
+          <input type="text" id="waitlistHoney" name="_honey" tabindex="-1" autocomplete="off">
         </div>
         <button type="submit" class="btn btn--primary" id="btnWaitlistSubmit">Join waitlist</button>
       </form>
+      <p class="form-error" id="waitlistError" role="alert" hidden></p>
       <p class="lede" id="waitlistConfirm" hidden>You're on the list — thank you!</p>
     </div>
   </div>
