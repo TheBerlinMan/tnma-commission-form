@@ -360,10 +360,22 @@ textarea:focus {
   border: 0;
 }
 
-/* Radio/checkbox groups sit in .option labels, not .field wrappers, so they
-   need their own invalid state. */
-.option.field--invalid {
+/* Radio/checkbox sets are marked on the whole .option-group — singling out one
+   .option label would point at an arbitrary choice. */
+.option-group.field--invalid .option {
   border-color: var(--color-danger);
+}
+
+/* Per-field validation message, inserted after the .field or .option-group. */
+.field-message {
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--color-danger);
+  margin: -8px 0 16px;
+}
+
+.field-message[hidden] {
+  display: none;
 }
 
 /* Honeypot: must stay in the layout (bots skip display:none) but off-screen

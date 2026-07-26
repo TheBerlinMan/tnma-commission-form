@@ -207,20 +207,63 @@
     return Array.from(slide.querySelectorAll('[required]'));
   }
 
-  function validateSlide(slide) {
-    const fields = requiredFieldsFor(slide);
-    let valid = true;
-    fields.forEach((field) => {
-      const wrapper = field.closest('.field') || field.parentElement;
-      const ok = field.checkValidity();
-      if (wrapper) wrapper.classList.toggle('field--invalid', !ok);
-      if (!ok) valid = false;
-    });
-    if (!valid) {
-      const firstInvalid = fields.find((f) => !f.checkValidity());
-      if (firstInvalid) firstInvalid.focus();
+  /**
+   * The element that owns a field's invalid styling and message: the .field
+   * wrapper for text inputs, the whole .option-group for radio/checkbox sets
+   * (marking a single .option label would point at an arbitrary choice).
+   */
+  function validationAnchor(field) {
+    return field.closest('.field') || field.closest('.option-group') || field.parentElement;
+  }
+
+  /** Lazily creates the message element that follows a field's anchor. */
+  function messageFor(anchor) {
+    let el = anchor.nextElementSibling;
+    if (!el || !el.classList.contains('field-message')) {
+      el = document.createElement('p');
+      el.className = 'field-message';
+      anchor.insertAdjacentElement('afterend', el);
     }
-    return valid;
+    return el;
+  }
+
+  function setFieldValidity(field, ok) {
+    const anchor = validationAnchor(field);
+    if (!anchor) return;
+    anchor.classList.toggle('field--invalid', !ok);
+    const msg = messageFor(anchor);
+    // validationMessage is the browser's own wording ("Please fill out this
+    // field"), which is localised and already familiar. Radio groups report an
+    // empty string in some browsers, so keep a fallback.
+    msg.textContent = ok ? '' : field.validationMessage || 'Please answer this question.';
+    msg.hidden = ok;
+  }
+
+  function validateSlide(slide) {
+    let firstInvalid = null;
+    requiredFieldsFor(slide).forEach((field) => {
+      const ok = field.checkValidity();
+      setFieldValidity(field, ok);
+      if (!ok && !firstInvalid) firstInvalid = field;
+    });
+    if (firstInvalid) firstInvalid.focus();
+    return !firstInvalid;
+  }
+
+  // Clear a message the moment the visitor fixes the answer, rather than making
+  // them click Next again to find out. Delegated because only the *first* radio
+  // in a group carries the `required` attribute — changing any sibling has to
+  // re-check that owner.
+  function clearIfNowValid(e) {
+    const field = e.target;
+    if (!field.name) return;
+    const owner = field.hasAttribute('required')
+      ? field
+      : requiredFieldsFor(track).find((f) => f.name === field.name);
+    if (owner && owner.checkValidity()) {
+      setFieldValidity(owner, true);
+      syncSlidesHeight();
+    }
   }
 
   function collectData() {
@@ -465,6 +508,9 @@
       syncSlidesHeight();
     });
   });
+
+  track.addEventListener('input', clearIfNowValid);
+  track.addEventListener('change', clearIfNowValid);
 
   window.addEventListener('resize', syncSlidesHeight);
 
