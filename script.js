@@ -120,6 +120,8 @@
   const waitlistForm = document.getElementById('waitlistForm');
   const waitlistConfirm = document.getElementById('waitlistConfirm');
   const waitlistError = document.getElementById('waitlistError');
+  // The copy inviting a signup, replaced by the confirmation once there is one.
+  const waitlistIntro = Array.from(document.querySelectorAll('.waitlist-intro'));
   if (waitlistForm) {
     const btnWaitlist = document.getElementById('btnWaitlistSubmit');
     const waitlistTurnstile = createTurnstile('waitlistTurnstile');
@@ -153,6 +155,7 @@
       waitlistTurnstile.reset();
 
       if (result.ok) {
+        waitlistIntro.forEach((el) => { el.hidden = true; });
         waitlistForm.hidden = true;
         waitlistConfirm.hidden = false;
         return;
