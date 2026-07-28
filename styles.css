@@ -415,6 +415,13 @@ textarea:focus {
   margin-top: 28px;
 }
 
+/* Needed because the `display: flex` above outranks the UA stylesheet's
+   `[hidden] { display: none }` — without it, hiding the form on a successful
+   signup does nothing and the button sits there reading "Joining…". */
+.waitlist-form[hidden] {
+  display: none;
+}
+
 .waitlist-form .field {
   flex: 1 1 auto;
   margin-bottom: 0;
