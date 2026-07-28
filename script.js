@@ -57,15 +57,86 @@
     return { ok: false, message: "Something went wrong on my end. Please try again in a moment, or email me directly." };
   }
 
+  // ── Cloudflare Turnstile ──────────────────────────────────────────────────
+  // The relay verifies a `cf-turnstile-response` token on every submission, and
+  // a submission without a valid one is dropped behind the same fake
+  // `200 {"ok":true}` it uses for spam — the visitor sees a thank-you while
+  // nothing arrives. Every payload below has to carry a fresh token.
+  const TURNSTILE_SITE_KEY = '0x4AAAAAADi0RqimZ7HsP72J';
+
+  // api.js is loaded async with render=explicit, so it can finish either before
+  // or after this file runs. Cover both: window.turnstile already exists, or
+  // the onload callback fires later.
+  const turnstileWaiting = [];
+  function whenTurnstileReady(fn) {
+    if (window.turnstile) fn();
+    else turnstileWaiting.push(fn);
+  }
+  window.onTurnstileLoad = () => {
+    while (turnstileWaiting.length) turnstileWaiting.shift()();
+  };
+
+  /**
+   * A widget that stays unrendered until its screen is actually reached. Tokens
+   * are single-use and expire in ~5 minutes, which is shorter than a considered
+   * pass through this deck — so rendering is deliberately late, and reset() runs
+   * after every submit attempt, including failed ones where the visitor stays
+   * put to retry and would otherwise resend the spent token.
+   */
+  function createTurnstile(containerId, onRender) {
+    let widgetId = null;
+    // Separate from widgetId: leaving and re-entering the review slide while
+    // api.js is still loading would otherwise queue a second render into the
+    // same container and stack two widgets.
+    let requested = false;
+    return {
+      render() {
+        if (requested) return;
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        requested = true;
+        whenTurnstileReady(() => {
+          widgetId = window.turnstile.render(container, { sitekey: TURNSTILE_SITE_KEY });
+          if (onRender) onRender();
+        });
+      },
+      /** '' while the challenge is still running, and after a reset. */
+      token() {
+        return (widgetId !== null && window.turnstile.getResponse(widgetId)) || '';
+      },
+      reset() {
+        if (widgetId !== null) window.turnstile.reset(widgetId);
+      },
+    };
+  }
+
+  // Shown when the visitor submits before the challenge has cleared. It usually
+  // settles in a second or two; if it never does (blocked script, no network to
+  // Cloudflare) there's no token to be had, so point at the way out.
+  const TURNSTILE_PENDING_MESSAGE =
+    "Hang on — the spam check hasn't finished yet. Try again in a moment, or reload the page if it doesn't clear.";
+
   // ── Waitlist (shown only once SPOTS_FILLED flips) ─────────────────────────
   const waitlistForm = document.getElementById('waitlistForm');
   const waitlistConfirm = document.getElementById('waitlistConfirm');
   const waitlistError = document.getElementById('waitlistError');
   if (waitlistForm) {
     const btnWaitlist = document.getElementById('btnWaitlistSubmit');
+    const waitlistTurnstile = createTurnstile('waitlistTurnstile');
+    // This view is the entire page when it's shown, so "when its screen is
+    // reached" is right now — there's no later moment to wait for.
+    if (!closedView.hidden) waitlistTurnstile.render();
+
     waitlistForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       if (btnWaitlist.disabled) return;
+
+      const token = waitlistTurnstile.token();
+      if (!token) {
+        waitlistError.textContent = TURNSTILE_PENDING_MESSAGE;
+        waitlistError.hidden = false;
+        return;
+      }
 
       waitlistError.hidden = true;
       btnWaitlist.disabled = true;
@@ -75,7 +146,11 @@
       const result = await submitToRelay(WAITLIST_FORM_ID, {
         email: document.getElementById('waitlistEmail').value.trim(),
         _honey: document.getElementById('waitlistHoney').value,
+        'cf-turnstile-response': token,
       });
+
+      // Spent either way: a rejected token can't be resubmitted.
+      waitlistTurnstile.reset();
 
       if (result.ok) {
         waitlistForm.hidden = true;
@@ -100,6 +175,8 @@
   const btnBack = document.getElementById('btnBack');
   const btnNext = document.getElementById('btnNext');
   const summaryEl = document.getElementById('summary');
+  // Rendered on arrival at the review slide, not at page load — see createTurnstile.
+  const surveyTurnstile = createTurnstile('surveyTurnstile', () => syncSlidesHeight());
 
   const FIELD_LABELS = {
     fullName: 'Name',
@@ -313,7 +390,7 @@
    * are joined into one string and slugs are swapped for their human labels, so
    * the notification email reads the same as the on-screen review.
    */
-  function buildSurveyPayload() {
+  function buildSurveyPayload(turnstileToken) {
     const data = collectData();
     const str = (key) => data[key] || '';
     const labelled = (key) => (data[key] ? formatValue(key, data[key]) : '');
@@ -339,6 +416,7 @@
       tattooCount: String(tattooCountFrom(data)),
       depositTotal: String(depositTotalFrom(data)),
       _honey: str('_honey'),
+      'cf-turnstile-response': turnstileToken,
     };
   }
 
@@ -392,7 +470,10 @@
     track.style.transform = `translateX(-${current * 100}%)`;
     updateProgress();
     updateNavLabels();
-    if (current === reviewIndex) renderSummary();
+    if (current === reviewIndex) {
+      renderSummary();
+      surveyTurnstile.render();
+    }
     syncSlidesHeight();
   }
 
@@ -401,12 +482,25 @@
 
   async function submitSurvey() {
     if (isSubmitting) return;
+
+    const token = surveyTurnstile.token();
+    if (!token) {
+      submitError.textContent = TURNSTILE_PENDING_MESSAGE;
+      submitError.hidden = false;
+      syncSlidesHeight();
+      return;
+    }
+
     isSubmitting = true;
     submitError.hidden = true;
     btnNext.disabled = true;
     btnNext.textContent = 'Sending…';
 
-    const result = await submitToRelay(COMMISSION_FORM_ID, buildSurveyPayload());
+    const result = await submitToRelay(COMMISSION_FORM_ID, buildSurveyPayload(token));
+
+    // Spent either way: a rejected token can't be resubmitted, so hand the
+    // visitor a fresh one before they retry.
+    surveyTurnstile.reset();
 
     isSubmitting = false;
     btnNext.disabled = false;
@@ -431,6 +525,8 @@
     if (current === lastIndex) {
       // restart
       document.querySelectorAll('input, textarea').forEach((el) => {
+        // Turnstile keeps its own hidden input inside the widget container.
+        if (el.closest('.turnstile')) return;
         if (el.type === 'checkbox' || el.type === 'radio') {
           el.checked = false;
           el.disabled = false;

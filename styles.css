@@ -399,10 +399,18 @@ textarea:focus {
   display: none;
 }
 
+/* The widget itself is a fixed 300×65 iframe. Reserving that height up front
+   keeps the slide from jumping when it renders. */
+.turnstile {
+  min-height: 65px;
+  margin-top: 16px;
+}
+
 .waitlist-form {
   display: flex;
   align-items: flex-start;
   align-self: stretch;
+  flex-wrap: wrap;
   gap: 10px;
   margin-top: 28px;
 }
@@ -414,6 +422,12 @@ textarea:focus {
 
 .waitlist-form .btn {
   flex: 0 0 auto;
+}
+
+/* Onto its own line, under the email + button row. */
+.waitlist-form .turnstile {
+  flex: 1 0 100%;
+  margin-top: 6px;
 }
 
 select {

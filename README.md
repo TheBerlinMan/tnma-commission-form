@@ -85,6 +85,7 @@ reads exactly like the on-screen review. Nothing in the relay needs to know the 
 | `tattooCount` | Tattoo count | `number` | — | — | `2` |
 | `depositTotal` | Deposit total ($) | `number` | — | — | `100` |
 | `_honey` | — (honeypot, not a declared field) | — | — | — | always `""` |
+| `cf-turnstile-response` | — (Turnstile token, not a declared field) | — | ✅ | — | opaque token |
 
 Notes on specific fields:
 
@@ -108,6 +109,7 @@ Notes on specific fields:
 |---|---|---|---|---|
 | `email` | Email | `email` | ✅ | `you@example.com` |
 | `_honey` | — (honeypot) | — | — | always `""` |
+| `cf-turnstile-response` | — (Turnstile token) | — | ✅ | opaque token |
 
 No `name` is collected — the closed-spots view asks for an email only. `name` stays
 declared as optional in the registry; it just won't be sent. That's safe all the way
@@ -220,9 +222,12 @@ empty string and the extra whitespace is collapsed.
 3. **Create the Resend Audience** and put its id in the waitlist entry's
    `audienceId` — the relay throws at cold start (500ing *every* form) if a
    `kind: 'waitlist'` entry has no `waitlist` config.
-4. **Send one real test submission** and confirm the email arrives with every
+4. **Check the Turnstile widget's allowed domains** in the Cloudflare dashboard —
+   the site key is domain-locked, so the real origin has to be listed or the
+   widget refuses to render and nothing can be submitted.
+5. **Send one real test submission** and confirm the email arrives with every
    field rendered as expected.
-5. **Set `dailyCap`** if you want something tighter than the default of 200.
+6. **Set `dailyCap`** if you want something tighter than the default of 200.
    Six spots means real volume is tiny; a cap of ~50 still leaves plenty of room.
 
 ---
@@ -245,9 +250,10 @@ entry covers every localhost port. **Remove it before go-live.**
 ## Things worth knowing
 
 - **A `200` does not guarantee an email was sent.** The relay deliberately returns
-  a fake success for honeypot hits, rate-limit trips, duplicate payloads within
-  5 minutes, and daily-cap overruns, so bots never learn what got caught. When
-  testing, confirm against the inbox, not the response.
+  a fake success for a missing or invalid Turnstile token, honeypot hits,
+  rate-limit trips, duplicate payloads within 5 minutes, and daily-cap overruns,
+  so bots never learn what got caught. When testing, confirm against the inbox,
+  not the response.
 - **Duplicate suppression is payload-identical within 5 minutes.** Submitting the
   survey, hitting restart, and re-submitting the exact same answers inside that
   window is accepted but not re-emailed.
@@ -259,7 +265,17 @@ entry covers every localhost port. **Remove it before go-live.**
   gates forward navigation on `validateSlide()`, so a missed required field is
   caught on the slide that owns it rather than coming back as a 422 on the final
   screen. Keep the two `required` sets — HTML attributes and the registry — in sync.
-- **Turnstile is not wired into this page.** If `TURNSTILE_SECRET_KEY` is ever set
-  on the relay deployment, every submission from this site starts failing the spam
-  check and returning a fake success. A `cf-turnstile-response` token would need
-  to be added to the payload first.
+- **Turnstile is wired into both forms.** Site key `0x4AAAAAADi0RqimZ7HsP72J`, set as
+  `TURNSTILE_SITE_KEY` at the top of `script.js`. `api.js` is loaded in `index.html`
+  with `render=explicit`, so nothing renders at page load — `createTurnstile()`
+  renders the survey widget on arrival at the review slide and the waitlist widget
+  when the closed view is shown. That's deliberate: a token expires in ~5 minutes,
+  which is shorter than an unhurried pass through the deck.
+  - Tokens are **single-use**, so `reset()` runs after every submit attempt,
+    including failed ones — a failed submit leaves the visitor on the review slide
+    with their answers intact, and a retry with the spent token would fail again.
+  - Submitting before the challenge has cleared shows a "hang on" message instead
+    of posting. Without a token the relay would drop the submission behind a fake
+    success, so it's better to make the visitor wait a beat.
+  - The site key is domain-locked in the Cloudflare dashboard. Add `localhost` there
+    to render the widget in local development.

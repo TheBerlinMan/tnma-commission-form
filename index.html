@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Bags By TNMA – Bag Commission Form</title>
 <link rel="stylesheet" href="styles.css">
+<!-- Turnstile. render=explicit so nothing renders at page load: a token expires
+     in ~5 minutes, and this deck can sit open far longer than that. script.js
+     renders each widget when its screen is actually reached. -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad&render=explicit" async defer></script>
 </head>
 <body>
 
@@ -285,6 +289,7 @@
         <div class="slide-content">
           <h2>Review &amp; submit</h2>
           <dl class="summary" id="summary"></dl>
+          <div class="turnstile" id="surveyTurnstile"></div>
           <p class="form-error" id="submitError" role="alert" hidden></p>
           <p class="fine-print">I may reach out to you during the design process with questions.</p>
         </div>
@@ -338,6 +343,7 @@
           <input type="text" id="waitlistHoney" name="_honey" tabindex="-1" autocomplete="off">
         </div>
         <button type="submit" class="btn btn--primary" id="btnWaitlistSubmit">Join waitlist</button>
+        <div class="turnstile" id="waitlistTurnstile"></div>
       </form>
       <p class="form-error" id="waitlistError" role="alert" hidden></p>
       <p class="lede" id="waitlistConfirm" hidden>You're on the list — thank you!</p>
