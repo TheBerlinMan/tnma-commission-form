@@ -1,7 +1,7 @@
 (() => {
   // Flip to true (and redeploy) once all commission spots are filled.
   // The survey stays wired up underneath — this just swaps the visible view.
-  const SPOTS_FILLED = false;
+  const SPOTS_FILLED = true;
 
   // ── form-relay (github.com/TheBerlinMan/tnma-form-relay) ──────────────────
   // Both ids must exist in the relay's src/config/forms.ts, and this site's
